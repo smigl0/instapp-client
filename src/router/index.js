@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import AlbumView from '../views/AlbumView.vue'
 import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
 import UploadView from "../views/UploadView.vue"
@@ -11,6 +12,11 @@ const router = createRouter({
       path: '',
       name: 'Home',
       component: HomeView
+    },
+    {
+      path: '/albums',
+      name: 'Albums',
+      component: AlbumView
     },
     {
       path: '/login',
@@ -26,14 +32,14 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach((to,from,next)=>{
-  if(!document.cookie){
-    if(to.name != "Login"){
+router.beforeEach((to, from, next) => {
+  if (!document.cookie) {
+    if (to.name != "Login") {
       next({
-        path:'/login',
-        replace:true
+        path: '/login',
+        replace: true
       })
-    } else{
+    } else {
       next()
     }
   } else {

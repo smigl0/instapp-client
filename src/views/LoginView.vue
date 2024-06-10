@@ -6,16 +6,20 @@ import InputText from "primevue/inputtext";
 import Password from "primevue/password";
 import SelectButton from "primevue/selectbutton";
 import Message from "primevue/message";
-import { inject, ref } from "vue";
+import { inject, provide, ref } from "vue";
 
-let username, password, mail;
+let username, mail;
+let password = ref("");
 
 const formSelect = ref("Login");
 const options = ref(["Login", "Register"]);
 
-let headers = inject('headers')
-let authorizationToken = inject('authorizationToken')
-authorizationToken=""
+let authorizationTokenFromLogin = ref("");
+
+// provide("authorizationTokenFromLogin", authorizationTokenFromLogin);
+
+let headers = inject("headers");
+let authorizationToken = inject("authorizationToken");
 
 let count = ref(0);
 let messages = ref([
@@ -27,15 +31,15 @@ let loginSubmit = async (event) => {
   let loginFormData = new FormData();
 
   loginFormData.append("username", username);
-  loginFormData.append("password", password);
+  loginFormData.append("password", password.value);
 
   try {
-    let authConfirm = '';
-      authConfirm = await axios.post(
+    let authConfirm = "";
+    authConfirm = await axios.post(
       "http://127.0.0.1:3000/api/auth/login",
       loginFormData
-    )            
-    
+    );
+
     if (authConfirm.data) {
       var now = new Date();
       var time = now.getTime();
@@ -46,19 +50,21 @@ let loginSubmit = async (event) => {
         authConfirm.data
       };expires=${now.toUTCString()};`;
 
-
-      console.log(authConfirm.data);
-      authorizationToken.value = authConfirm.data
+      authorizationToken.value = document.cookie.split("=")[1];
+      console.log(authorizationToken);
 
       router.push("/");
     }
   } catch (error) {
-    if (error.request.status == 401) {
-      messages.value.push({
-        severity: "error",
-        content: "Wrong credentials",
-        id: count.value++,
-      });
+    if (error) {
+      console.log(error);
+      if (error.request.status == 401) {
+        messages.value.push({
+          severity: "error",
+          content: "Wrong credentials",
+          id: count.value++,
+        });
+      }
     }
   }
 };
@@ -69,7 +75,7 @@ let regiserSubmit = async (event) => {
 
   loginFormData.append("username", username);
   loginFormData.append("mail", mail);
-  loginFormData.append("password", password);
+  loginFormData.append("password", password.value);
 
   console.log(loginFormData);
 
@@ -78,9 +84,9 @@ let regiserSubmit = async (event) => {
       "http://127.0.0.1:3000/api/auth/register",
       loginFormData,
       {
-        headers:{
-          'Content-Type':'multipart/form-data'
-        }
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       }
     );
     if (authConfirm) {
