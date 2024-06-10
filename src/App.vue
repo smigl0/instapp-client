@@ -1,6 +1,6 @@
 <script setup>
 import { RouterLink, RouterView, useRouter, useRoute } from "vue-router";
-import { ref } from "vue";
+import { ref,provide,inject } from "vue";
 import axios from "axios";
 
 import TabMenu from "primevue/tabmenu";
@@ -9,13 +9,10 @@ import Menubar from "primevue/menubar";
 import Button from "primevue/button";
 import Menu from "primevue/menu";
 
-let authToken = document.cookie.split("=")[1];
+let authorizationToken = ref(document.cookie.split("=")[1])
 
-const headers = {
-  Authorization: `${authToken}`,
-};
-
-console.log(authToken);
+console.log("IM MAKING AN AUTHTOKEN",authorizationToken.value);
+provide('authorizationToken',authorizationToken)
 
 const menu = ref();
 const items = ref([
@@ -30,10 +27,17 @@ const items = ref([
         },
       },
       {
-        label: "My Posts",
+        label: "Album",
         icon: "pi pi-upload",
         command: () => {
-          router.push("/myPosts");
+          router.push("/albums");
+        },
+      },
+      {
+        label: "Upload",
+        icon: "pi pi-upload",
+        command: () => {
+          router.push("/upload");
         },
       },
     ],
@@ -46,8 +50,12 @@ const items = ref([
         icon: "pi pi-refresh",
       },
       {
-        label: "My account",
-        icon: "pi pi-upload",
+        label: "Log out",
+        icon: "pi pi-user-minus",
+        command: () => {
+          document.cookie = `smiglo-instapp="";expires=Thu, 01 Jan 1970 00:00:01 GMT`
+          router.push("/login");
+        },
       },
     ],
   },
@@ -60,11 +68,6 @@ const toggle = (event) => {
 const router = useRouter();
 const route = useRoute();
 
-if (!document.cookie) {
-  router.push("/login");
-}
-
-console.log(router.currentRoute.value.fullPath);
 </script>
 
 <template>

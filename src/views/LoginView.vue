@@ -6,12 +6,16 @@ import InputText from "primevue/inputtext";
 import Password from "primevue/password";
 import SelectButton from "primevue/selectbutton";
 import Message from "primevue/message";
-import { ref } from "vue";
+import { inject, ref } from "vue";
 
 let username, password, mail;
 
 const formSelect = ref("Login");
 const options = ref(["Login", "Register"]);
+
+let headers = inject('headers')
+let authorizationToken = inject('authorizationToken')
+authorizationToken=""
 
 let count = ref(0);
 let messages = ref([
@@ -26,19 +30,25 @@ let loginSubmit = async (event) => {
   loginFormData.append("password", password);
 
   try {
-    let authConfirm = await axios.post(
+    let authConfirm = '';
+      authConfirm = await axios.post(
       "http://127.0.0.1:3000/api/auth/login",
       loginFormData
-    );
+    )            
+    
     if (authConfirm.data) {
       var now = new Date();
       var time = now.getTime();
-      var expireTime = time + 100 * 36000;
+      var expireTime = time + 99 * 36000;
       now.setTime(expireTime);
 
       document.cookie = `smiglo-instapp=${
         authConfirm.data
       };expires=${now.toUTCString()};`;
+
+
+      console.log(authConfirm.data);
+      authorizationToken.value = authConfirm.data
 
       router.push("/");
     }
@@ -66,7 +76,12 @@ let regiserSubmit = async (event) => {
   try {
     let authConfirm = await axios.post(
       "http://127.0.0.1:3000/api/auth/register",
-      loginFormData
+      loginFormData,
+      {
+        headers:{
+          'Content-Type':'multipart/form-data'
+        }
+      }
     );
     if (authConfirm) {
       messages.value.push({
@@ -78,7 +93,7 @@ let regiserSubmit = async (event) => {
     }
   } catch (error) {
     if (error.request.status == 401) {
-      // console.log(error.request.response);
+      console.log(error);
       messages.value.push({
         severity: "error",
         content: error.request.response,

@@ -1,29 +1,75 @@
 <script async setup>
 import axios from "axios";
-import { ref } from "vue";
+import { inject, ref } from "vue";
 
+import Dialog from 'primevue/dialog';
 import Button from "primevue/button";
 import Menu from "primevue/menu";
+import SelectButton from "primevue/selectbutton";
 
-let authToken = document.cookie.split("=")[1];
 
-const headers = {
-  Authorization: `${authToken}`,
-};
+let authorizationToken = inject('authorizationToken')
 
 const toggle = (event) => {
   menu.value.toggle(event);
 };
 
-let posts = await axios.get("http://localhost:3000/api/photos", {
-  headers: headers,
-});
+let data = {headers:{
+  'Authorization':authorizationToken._rawValue
+}};
 
+
+let posts = await axios.get("http://localhost:3000/api/photos", data);
+
+let visible = ref(false)
 console.log(posts.data);
+
+let currentInfo = ref({})
+
+const showInfo = (id)=>{
+  modalSelect.value = "Info"
+  console.log('test');
+  visible.value = true
+  console.log(posts.data);
+  console.log(id);
+  currentInfo.value = posts.data[id]
+}
+
+const options = ref(["Info", "Tags","Filters"]);
+const modalSelect = ref("Info")
 </script>
 
-  
+
 <template>
+  <Dialog modal v-model:visible="visible" style="width:90wh;height:90vh;box-sizing:border-box;overflow:hidden;">
+    <template #container>
+      <div style="width:90vw;height:100%;display:flex;flex-direction:row;">
+        <div style="width:50%;height:100%;background-color:var(--gray-800);gap:10px;display:flex;flex-direction:column;justify-content:center;align-items:center">
+          <img :src="`http://localhost:3000/api/getImage/${currentInfo.id}`" width="100%">
+        </div>
+          <div style="width:100%;height:100%;">
+            <div style="display:flex;justify-content:right;height:min-content;width:100%;">
+            <Button icon="pi pi-times" rounded outlined aria-label="Filter" style="margin-right:20px;margin-top:20px;" @click="visible=false"/>
+          </div>
+          <div style="display:flex;justify-content:center;">
+            <SelectButton
+            v-model="modalSelect"
+            :options="options"
+            aria-labelledby="basic"
+          />
+          </div>
+          <div v-if="modalSelect =='Info'">
+          <!-- {{ currentInfo }} -->
+          <p>id: {{currentInfo.id}}</p>
+          <p>Album: {{currentInfo.album}}</p>
+          <p>Original filename: {{currentInfo.originalName}}</p>
+          <p>Filtered state: {{currentInfo.changes}}</p>
+          <p>Changes: {{currentInfo.history.length -1}}</p>
+          </div>
+          </div>
+      </div>
+    </template>
+  </Dialog>
   <div
     style="
   margin-left: 10%; 
@@ -47,7 +93,7 @@ console.log(posts.data);
         margin: 5px 5px;
       "
       class="postImage"
-      @click="console.log(id)"
+      @click="showInfo(id)"
       :src="`http://localhost:3000/api/getImage/${item.id}`"
     />
   </div>
